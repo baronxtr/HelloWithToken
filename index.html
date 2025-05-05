@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HelloWithToken DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      font-size: 2.2em;
+      margin-bottom: 20px;
+    }
+    h3 {
+      color: #34495e;
+      font-size: 1.5em;
+      margin: 20px 0 10px;
+    }
+    .wallet-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .connect-wallet-btn {
+      background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1.2em;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: auto;
+    }
+    .connect-wallet-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    }
+    .connect-wallet-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .wallet-status {
+      margin-top: 10px;
+      font-size: 1em;
+      color: #2c3e50;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid #dfe6e9;
+      border-radius: 10px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #6e8efb;
+    }
+    textarea {
+      height: 120px;
+      resize: none;
+    }
+    button {
+      background: #6e8efb;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1em;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+    button:hover {
+      background: #5a78e0;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff6b6b;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      max-width: 90%;
+      max-height: 80%;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h3 {
+      margin: 0;
+    }
+    .close-btn {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s;
+    }
+    .close-btn:hover {
+      background: #e55a5a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #dfe6e9;
+    }
+    th {
+      background: #f1f3f5;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    tr {
+      transition: background 0.3s;
+    }
+    tr:hover {
+      background: #f8f9fa;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f1f3f5;
+      border-radius: 10px;
+      font-size: 0.9em;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-left: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .checkbox-container label {
+      margin-left: 8px;
+      font-size: 1em;
+      color: #2c3e50;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      h2 {
+        font-size: 1.8em;
+      }
+      h3 {
+        font-size: 1.2em;
+      }
+      button, .connect-wallet-btn {
+        font-size: 0.9em;
+        padding: 10px 15px;
+      }
+      .modal-content {
+        max-width: 95%;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>HelloWithToken DApp</h2>
+    <div class="wallet-section">
+      <select id="networkSelect" onchange="updateNetwork()">
+        <option value="base">Base Mainnet</option>
+        <option value="linea">Linea Mainnet</option>
+      </select>
+      <button class="connect-wallet-btn" id="connectWalletBtn">
+        <i class="fas fa-wallet"></i> Connect Wallet
+      </button>
+      <div class="wallet-status" id="walletStatus">Not connected</div>
+    </div>
+    <h3>Send Message</h3>
+    <input type="text" id="receiver" placeholder="Receiver Address (0x...)" />
+    <textarea id="message" placeholder="Message (max 280 chars)" maxlength="280"></textarea>
+    <input type="text" id="manualToken" placeholder="Token/NFT Address (e.g., 0x...)" style="display: block;" />
+    <select id="manualTokenType" style="display: block;" onchange="updateTokenInputs()">
+      <option value="ERC20">ERC-20 Token</option>
+      <option value="ERC721">ERC-721 NFT</option>
+    </select>
+    <div id="tokenInfo" style="margin: 10px 0; font-size: 0.9em; color: #2c3e50;"></div>
+    <input type="number" id="amountOrId" placeholder="Amount (for tokens) or Token ID (for NFTs)" min="0" step="any" disabled />
+    <div class="checkbox-container" id="encryptContainer" style="display: none;">
+      <input type="checkbox" id="encrypt" />
+      <label for="encrypt">Encrypt Message</label>
+    </div>
+    <button onclick="sendHello()" id="sendHelloBtn" disabled>
+      <i class="fas fa-paper-plane"></i> Send Hello
+    </button>
+    <h3>Inbox</h3>
+    <input type="text" id="userAddress" placeholder="Your Address (0x...) for Inbox" />
+    <button onclick="openInboxModal()" id="inboxBtn" disabled>
+      <i class="fas fa-inbox"></i> View Inbox
+      <span id="inboxBadge" class="notification-badge" style="display: none;">!</span>
+    </button>
+    <button onclick="getTotalInteractions()" id="interactionsBtn" disabled>
+      <i class="fas fa-chart-line"></i> View Total Interactions
+    </button>
+    <div id="output"></div>
+  </div>
+
+  <!-- Modal untuk Inbox -->
+  <div id="inboxModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Inbox</h3>
+        <button class="close-btn" onclick="closeInboxModal()">✕</button>
+      </div>
+      <table id="inboxTable">
+        <thead id="inboxTableHead">
+          <tr>
+            <th>Sender</th>
+            <th>Message</th>
+            <th>Timestamp</th>
+            <th>Token/NFT</th>
+          </tr>
+        </thead>
+        <tbody id="inboxBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const networks = {
+      base: {
+        chainId: "0x2105",
+        chainName: "Base Mainnet",
+        rpcUrls: ["https://mainnet.base.org", "https://base.llamarpc.com"],
+        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+        blockExplorerUrls: ["https://basescan.org"],
+        contractAddress: "0x3539a4762301d9387eF5F7D99bcbB8f446356932",
+        contractABI: [
+          {
+            "anonymous": false,
+            "inputs": [
+              { "indexed": true, "internalType": "address", "name": "sender", "type": "address" },
+              { "indexed": true, "internalType": "address", "name": "receiver", "type": "address" },
+              { "indexed": false, "internalType": "bytes32", "name": "messageHash", "type": "bytes32" },
+              { "indexed": false, "internalType": "address", "name": "tokenContract", "type": "address" },
+              { "indexed": false, "internalType": "uint256", "name": "amountOrId", "type": "uint256" },
+              { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+            ],
+            "name": "MessageSent",
+            "type": "event"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "receiver", "type": "address" },
+              { "internalType": "string", "name": "message", "type": "string" },
+              { "internalType": "address", "name": "tokenContract", "type": "address" },
+              { "internalType": "uint256", "name": "amountOrId", "type": "uint256" }
+            ],
+            "name": "sendHello",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "user", "type": "address" }
+            ],
+            "name": "getMessageHistory",
+            "outputs": [
+              {
+                "components": [
+                  { "internalType": "address", "name": "sender", "type": "address" },
+                  { "internalType": "string", "name": "message", "type": "string" },
+                  { "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+                  { "internalType": "address", "name": "tokenContract", "type": "address" },
+                  { "internalType": "uint256", "name": "amountOrId", "type": "uint256" }
+                ],
+                "internalType": "struct HelloWithToken.Message[]",
+                "name": "",
+                "type": "tuple[]"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "user", "type": "address" }
+            ],
+            "name": "getTotalInteractions",
+            "outputs": [
+              { "internalType": "uint256", "name": "", "type": "uint256" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "", "type": "address" }
+            ],
+            "name": "totalInteractions",
+            "outputs": [
+              { "internalType": "uint256", "name": "", "type": "uint256" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          }
+        ]
+      },
+      linea: {
+        chainId: "0xe708",
+        chainName: "Linea Mainnet",
+        rpcUrls: ["https://rpc.linea.build", "https://linea-mainnet.infura.io/v3/8850ffe70a6f4cdf932d72d3e3470173"],
+        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+        blockExplorerUrls: ["https://lineascan.build"],
+        contractAddress: "0x7b3294d5019944d8f1F065851023e135d9f58a43",
+        contractABI: [
+          {
+            "anonymous": false,
+            "inputs": [
+              { "indexed": true, "internalType": "address", "name": "sender", "type": "address" },
+              { "indexed": true, "internalType": "address", "name": "receiver", "type": "address" },
+              { "indexed": false, "internalType": "bytes32", "name": "messageHash", "type": "bytes32" },
+              { "indexed": false, "internalType": "address", "name": "tokenContract", "type": "address" },
+              { "indexed": false, "internalType": "uint256", "name": "amountOrId", "type": "uint256" },
+              { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+            ],
+            "name": "MessageSent",
+            "type": "event"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "receiver", "type": "address" },
+              { "internalType": "string", "name": "message", "type": "string" },
+              { "internalType": "address", "name": "tokenContract", "type": "address" },
+              { "internalType": "uint256", "name": "amountOrId", "type": "uint256" },
+              { "internalType": "bool", "name": "encrypt", "type": "bool" }
+            ],
+            "name": "sendHello",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "user", "type": "address" }
+            ],
+            "name": "getMessageHistory",
+            "outputs": [
+              {
+                "components": [
+                  { "internalType": "address", "name": "sender", "type": "address" },
+                  { "internalType": "string", "name": "message", "type": "string" },
+                  { "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+                  { "internalType": "bool", "name": "encrypted", "type": "bool" },
+                  { "internalType": "address", "name": "tokenContract", "type": "address" },
+                  { "internalType": "uint256", "name": "amountOrId", "type": "uint256" }
+                ],
+                "internalType": "struct HelloWithToken.Message[]",
+                "name": "",
+                "type": "tuple[]"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "user", "type": "address" }
+            ],
+            "name": "getTotalInteractions",
+            "outputs": [
+              { "internalType": "uint256", "name": "", "type": "uint256" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              { "internalType": "address", "name": "", "type": "address" }
+            ],
+            "name": "totalInteractions",
+            "outputs": [
+              { "internalType": "uint256", "name": "", "type": "uint256" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          }
+        ]
+      }
+    };
+
+    let provider, signer, contract, isConnected = false, userAddress;
+    let pollingInterval;
+    let selectedNetwork = "base";
+
+    function shortenAddress(address) {
+      return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+
+    function validateAddress(address) {
+      try {
+        return ethers.utils.getAddress(address);
+      } catch (error) {
+        throw new Error(`Invalid address: ${address}. Please check the address format and checksum.`);
+      }
+    }
+
+    async function getTokenDecimals(tokenAddress) {
+      try {
+        const token = new ethers.Contract(tokenAddress, ["function decimals() view returns (uint8)"], provider);
+        return await token.decimals();
+      } catch (error) {
+        log(`Error fetching decimals for ${tokenAddress}: ${error.message}`);
+        return 18;
+      }
+    }
+
+    async function getTokenMetadata(tokenAddress) {
+      try {
+        const token = new ethers.Contract(tokenAddress, [
+          "function name() view returns (string)",
+          "function symbol() view returns (string)"
+        ], provider);
+        const name = await token.name();
+        const symbol = await token.symbol();
+        return { name, symbol };
+      } catch (error) {
+        return { name: "Unknown", symbol: "UNK" };
+      }
+    }
+
+    async function getTokenBalance(tokenAddress, user) {
+      try {
+        const token = new ethers.Contract(tokenAddress, ["function balanceOf(address) view returns (uint256)"], provider);
+        const balance = await token.balanceOf(user);
+        const decimals = await getTokenDecimals(tokenAddress);
+        const metadata = await getTokenMetadata(tokenAddress);
+        return { balance, decimals, symbol: metadata.symbol };
+      } catch (error) {
+        log(`Error fetching balance for ${tokenAddress}: ${error.message}`);
+        return { balance: ethers.BigNumber.from(0), decimals: 18, symbol: "UNK" };
+      }
+    }
+
+    async function updateTokenInputs() {
+      const manualToken = document.getElementById("manualToken").value;
+      const manualTokenType = document.getElementById("manualTokenType").value;
+      const amountOrId = document.getElementById("amountOrId");
+      const tokenInfo = document.getElementById("tokenInfo");
+
+      amountOrId.disabled = true;
+      amountOrId.value = "";
+      tokenInfo.innerText = "";
+
+      if (!manualToken || !isConnected) {
+        amountOrId.placeholder = "Amount (for tokens) or Token ID (for NFTs)";
+        return;
+      }
+
+      try {
+        const tokenAddress = validateAddress(manualToken);
+        if (manualTokenType === "ERC20") {
+          const { balance, decimals, symbol } = await getTokenBalance(tokenAddress, userAddress);
+          const balanceFormatted = ethers.utils.formatUnits(balance, decimals);
+          tokenInfo.innerText = `Your Balance: ${balanceFormatted} ${symbol}`;
+          amountOrId.placeholder = `Amount (e.g., 10 for 10 ${symbol})`;
+          amountOrId.type = "number";
+          amountOrId.step = "any";
+          amountOrId.disabled = false;
+        } else if (manualTokenType === "ERC721") {
+          tokenInfo.innerText = "";
+          amountOrId.placeholder = "Enter NFT Token ID";
+          amountOrId.type = "number";
+          amountOrId.step = "1";
+          amountOrId.disabled = false;
+        }
+      } catch (error) {
+        log(`Error validating token address: ${error.message}`);
+        amountOrId.placeholder = "Invalid token address";
+      }
+    }
+
+    function updateNetwork() {
+      selectedNetwork = document.getElementById("networkSelect").value;
+      const encryptContainer = document.getElementById("encryptContainer");
+      const inboxTableHead = document.getElementById("inboxTableHead");
+      if (selectedNetwork === "linea") {
+        encryptContainer.style.display = "flex";
+        inboxTableHead.innerHTML = `
+          <tr>
+            <th>Sender</th>
+            <th>Message</th>
+            <th>Timestamp</th>
+            <th>Encrypted</th>
+            <th>Token/NFT</th>
+          </tr>
+        `;
+      } else {
+        encryptContainer.style.display = "none";
+        inboxTableHead.innerHTML = `
+          <tr>
+            <th>Sender</th>
+            <th>Message</th>
+            <th>Timestamp</th>
+            <th>Token/NFT</th>
+          </tr>
+        `;
+      }
+      if (isConnected) {
+        connectWallet();
+      }
+    }
+
+    document.getElementById("manualToken").addEventListener("input", updateTokenInputs);
+
+    async function connectWallet(retryCount = 0, maxRetries = 3) {
+      const connectBtn = document.getElementById("connectWalletBtn");
+      connectBtn.disabled = true;
+      connectBtn.innerHTML = '<span class="loading"></span> Connecting...';
+      const walletStatus = document.getElementById("walletStatus");
+      const networkConfig = networks[selectedNetwork];
+
+      try {
+        if (!window.ethereum) {
+          throw new Error("MetaMask is not installed. Please install it from https://metamask.io.");
+        }
+
+        log("Attempting to connect wallet...");
+
+        let switched = false;
+        for (let i = 0; i < networkConfig.rpcUrls.length; i++) {
+          try {
+            await window.ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: networkConfig.chainId }],
+            });
+            switched = true;
+            break;
+          } catch (switchError) {
+            if (switchError.code === 4902 || switchError.code === -32603) {
+              try {
+                await window.ethereum.request({
+                  method: "wallet_addEthereumChain",
+                  params: [{
+                    chainId: networkConfig.chainId,
+                    chainName: networkConfig.chainName,
+                    rpcUrls: [networkConfig.rpcUrls[i]],
+                    nativeCurrency: networkConfig.nativeCurrency,
+                    blockExplorerUrls: networkConfig.blockExplorerUrls
+                  }],
+                });
+                switched = true;
+                break;
+              } catch (addError) {
+                log(`Failed to add ${networkConfig.chainName} with RPC ${networkConfig.rpcUrls[i]}: ${addError.message}`);
+                if (i === networkConfig.rpcUrls.length - 1 && retryCount >= maxRetries) {
+                  throw new Error(`Failed to add ${networkConfig.chainName} after trying all RPCs: ${addError.message}`);
+                }
+              }
+            } else if (switchError.code === 4001) {
+              throw new Error("User rejected the network switch request. Please approve in MetaMask.");
+            } else {
+              log(`Switch error with RPC ${networkConfig.rpcUrls[i]}: ${switchError.message}`);
+            }
+          }
+        }
+
+        if (!switched && retryCount < maxRetries) {
+          log(`Retrying connection attempt ${retryCount + 1}...`);
+          return connectWallet(retryCount + 1, maxRetries);
+        }
+
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== networkConfig.chainId) {
+          throw new Error(`Failed to switch to ${networkConfig.chainName}. Please manually select ${networkConfig.chainName} in MetaMask.`);
+        }
+
+        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        contract = new ethers.Contract(networkConfig.contractAddress, networkConfig.contractABI, signer);
+        userAddress = await signer.getAddress();
+
+        isConnected = true;
+        walletStatus.innerText = `Connected: ${shortenAddress(userAddress)}`;
+        document.getElementById("userAddress").value = userAddress;
+        document.getElementById("sendHelloBtn").disabled = false;
+        document.getElementById("inboxBtn").disabled = false;
+        document.getElementById("interactionsBtn").disabled = false;
+        connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connected';
+        connectBtn.style.background = 'linear-gradient(90deg, #2ecc71, #27ae60)';
+        log(`Successfully connected to MetaMask on ${networkConfig.chainName}`);
+
+        await updateTokenInputs();
+        startInboxPolling();
+      } catch (error) {
+        let errorMessage;
+        if (error.code === 4001) {
+          errorMessage = "Connection rejected by user. Please approve the connection in MetaMask.";
+        } else if (error.message.includes("MetaMask is not installed")) {
+          errorMessage = error.message;
+        } else if (retryCount < maxRetries) {
+          log(`Connection attempt ${retryCount + 1} failed: ${error.message}. Retrying...`);
+          return connectWallet(retryCount + 1, maxRetries);
+        } else {
+          errorMessage = `Connection failed after ${maxRetries} attempts: ${error.message}. Please check MetaMask, network, or try a different browser.`;
+        }
+        log(errorMessage);
+        walletStatus.innerText = "Connection failed. Try again.";
+        connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+        connectBtn.disabled = false;
+      }
+    }
+
+    async function sendHello() {
+      const sendBtn = document.getElementById("sendHelloBtn");
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<span class="loading"></span> Sending...';
+      const networkConfig = networks[selectedNetwork];
+      try {
+        const receiver = document.getElementById("receiver").value;
+        const message = document.getElementById("message").value.trim();
+        const manualToken = document.getElementById("manualToken").value;
+        const manualTokenType = document.getElementById("manualTokenType").value;
+        const amountOrIdInput = document.getElementById("amountOrId").value;
+        const encrypt = selectedNetwork === "linea" ? document.getElementById("encrypt").checked : false;
+
+        const validatedReceiver = validateAddress(receiver);
+        if (!message) {
+          throw new Error("Message cannot be empty");
+        }
+
+        let tokenContract = "0x0000000000000000000000000000000000000000";
+        let amountOrId = 0;
+        let decimals = 18;
+
+        if (manualToken && manualToken !== "") {
+          tokenContract = validateAddress(manualToken);
+          if (manualTokenType === "ERC20") {
+            if (!amountOrIdInput || amountOrIdInput <= 0) {
+              throw new Error("Amount must be greater than 0 for ERC-20 tokens");
+            }
+            decimals = await getTokenDecimals(tokenContract);
+            amountOrId = ethers.utils.parseUnits(amountOrIdInput.toString(), decimals);
+            const token = new ethers.Contract(tokenContract, ["function balanceOf(address) view returns (uint256)"], signer);
+            const balance = await token.balanceOf(userAddress);
+            if (balance.lt(amountOrId)) {
+              throw new Error(`Insufficient balance: You have ${ethers.utils.formatUnits(balance, decimals)} tokens`);
+            }
+            const tokenABI = ["function approve(address spender, uint256 amount) public returns (bool)"];
+            const tokenContractInstance = new ethers.Contract(tokenContract, tokenABI, signer);
+            const txApprove = await tokenContractInstance.approve(networkConfig.contractAddress, amountOrId);
+            log(`Approving ${amountOrIdInput} tokens (${ethers.utils.formatUnits(amountOrId, decimals)} wei): ${txApprove.hash}`);
+            await txApprove.wait();
+          } else if (manualTokenType === "ERC721") {
+            if (!amountOrIdInput || amountOrIdInput <= 0) {
+              throw new Error("NFT Token ID must be a positive number");
+            }
+            amountOrId = amountOrIdInput;
+            const nft = new ethers.Contract(tokenContract, ["function ownerOf(uint256 tokenId) view returns (address)"], signer);
+            const owner = await nft.ownerOf(amountOrId);
+            if (owner.toLowerCase() !== userAddress.toLowerCase()) {
+              throw new Error(`You do not own NFT with Token ID ${amountOrId}`);
+            }
+            const nftABI = ["function approve(address to, uint256 tokenId) public"];
+            const nftContract = new ethers.Contract(tokenContract, nftABI, signer);
+            const txApprove = await nftContract.approve(networkConfig.contractAddress, amountOrId);
+            log(`Approving NFT Token ID ${amountOrId}: ${txApprove.hash}`);
+            await txApprove.wait();
+          }
+        }
+
+        let tx;
+        if (selectedNetwork === "linea") {
+          tx = await contract.sendHello(validatedReceiver, message, tokenContract, amountOrId, encrypt);
+        } else {
+          tx = await contract.sendHello(validatedReceiver, message, tokenContract, amountOrId);
+        }
+        log(`Transaction sent: ${tx.hash}`);
+        await tx.wait();
+        log("Message and token/NFT sent successfully!");
+      } catch (error) {
+        log(`Error: ${error.message}`);
+      } finally {
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Hello';
+        sendBtn.disabled = !isConnected;
+        await updateTokenInputs();
+      }
+    }
+
+    async function getMessageCount(user) {
+      try {
+        const validatedUser = validateAddress(user);
+        const messages = await contract.getMessageHistory(validatedUser);
+        return messages.length;
+      } catch (error) {
+        log(`Error fetching message count: ${error.message}`);
+        return 0;
+      }
+    }
+
+    async function checkForNewMessages() {
+      if (!isConnected || !userAddress) return;
+
+      const user = document.getElementById("userAddress").value || userAddress;
+      if (!user) return;
+
+      const currentMessageCount = await getMessageCount(user);
+      const lastSeenMessageCount = localStorage.getItem(`lastSeenMessageCount_${user.toLowerCase()}_${selectedNetwork}`) || 0;
+
+      if (currentMessageCount > lastSeenMessageCount) {
+        const inboxBadge = document.getElementById("inboxBadge");
+        if (inboxBadge) {
+          inboxBadge.style.display = "inline-block";
+          inboxBadge.innerText = "!";
+        }
+      }
+    }
+
+    function startInboxPolling() {
+      if (pollingInterval) clearInterval(pollingInterval);
+      pollingInterval = setInterval(checkForNewMessages, 30000);
+      checkForNewMessages();
+    }
+
+    function stopInboxPolling() {
+      if (pollingInterval) clearInterval(pollingInterval);
+    }
+
+    function openInboxModal() {
+      const modal = document.getElementById("inboxModal");
+      modal.style.display = "flex";
+      getMessageHistory();
+    }
+
+    function closeInboxModal() {
+      const modal = document.getElementById("inboxModal");
+      modal.style.display = "none";
+    }
+
+    async function getMessageHistory() {
+      const inboxBtn = document.getElementById("inboxBtn");
+      inboxBtn.disabled = true;
+      inboxBtn.querySelector("i").classList.add("fa-spin");
+
+      try {
+        const user = document.getElementById("userAddress").value || userAddress;
+        const validatedUser = validateAddress(user);
+        const messages = await contract.getMessageHistory(validatedUser);
+        const inboxBody = document.getElementById("inboxBody");
+        inboxBody.innerHTML = "";
+
+        for (const msg of messages) {
+          const row = document.createElement("tr");
+          const date = new Date(Number(msg.timestamp) * 1000).toLocaleString();
+          let tokenInfo = "None";
+          if (msg.tokenContract !== "0x0000000000000000000000000000000000000000") {
+            if (msg.amountOrId.gt(0)) {
+              try {
+                const decimals = await getTokenDecimals(msg.tokenContract);
+                const amountFormatted = ethers.utils.formatUnits(msg.amountOrId, decimals);
+                tokenInfo = `${msg.tokenContract} (${amountFormatted})`;
+              } catch {
+                tokenInfo = `${msg.tokenContract} (Token ID: ${msg.amountOrId})`;
+              }
+            } else {
+              tokenInfo = `${msg.tokenContract} (0)`;
+            }
+          }
+          if (selectedNetwork === "linea") {
+            row.innerHTML = `
+              <td>${msg.sender}</td>
+              <td>${msg.message}</td>
+              <td>${date}</td>
+              <td>${msg.encrypted ? "Yes" : "No"}</td>
+              <td>${tokenInfo}</td>
+            `;
+          } else {
+            row.innerHTML = `
+              <td>${msg.sender}</td>
+              <td>${msg.message}</td>
+              <td>${date}</td>
+              <td>${tokenInfo}</td>
+            `;
+          }
+          inboxBody.appendChild(row);
+        }
+
+        localStorage.setItem(`lastSeenMessageCount_${user.toLowerCase()}_${selectedNetwork}`, messages.length);
+        const inboxBadge = document.getElementById("inboxBadge");
+        if (inboxBadge) inboxBadge.style.display = "none";
+
+        log(`Loaded ${messages.length} messages for ${user} on ${networks[selectedNetwork].chainName}`);
+      } catch (error) {
+        log(`Error: ${error.message}`);
+      } finally {
+        inboxBtn.disabled = !isConnected;
+        inboxBtn.querySelector("i").classList.remove("fa-spin");
+      }
+    }
+
+    async function getTotalInteractions() {
+      const interactionsBtn = document.getElementById("interactionsBtn");
+      interactionsBtn.disabled = true;
+      interactionsBtn.innerHTML = '<span class="loading"></span> Loading...';
+      try {
+        const user = document.getElementById("userAddress").value || userAddress;
+        const validatedUser = validateAddress(user);
+        const interactions = await contract.getTotalInteractions(validatedUser);
+        log(`Total Interactions for ${user} on ${networks[selectedNetwork].chainName}: ${interactions}`);
+      } catch (error) {
+        log(`Error: ${error.message}`);
+      } finally {
+        interactionsBtn.innerHTML = '<i class="fas fa-chart-line"></i> View Total Interactions';
+        interactionsBtn.disabled = !isConnected;
+      }
+    }
+
+    function log(message) {
+      const output = document.getElementById("output");
+      output.innerText += `${new Date().toLocaleTimeString()} - ${message}\n`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', () => {
+      const connectBtn = document.getElementById("connectWalletBtn");
+      const walletStatus = document.getElementById("walletStatus");
+
+      // Check if ethers.js is loaded
+      if (typeof ethers === 'undefined') {
+        log("Error: ethers.js is not loaded. Please check your network or CDN.");
+        walletStatus.innerText = "ethers.js failed to load";
+        connectBtn.disabled = true;
+        return;
+      }
+
+      // Check for MetaMask
+      if (!window.ethereum) {
+        log("MetaMask not detected. Please install MetaMask from https://metamask.io.");
+        walletStatus.innerText = "MetaMask not installed";
+        connectBtn.disabled = true;
+        return;
+      }
+
+      // Enable the connect button
+      connectBtn.disabled = false;
+      walletStatus.innerText = "Not connected";
+
+      // Attach event listener to the connect button
+      connectBtn.addEventListener('click', () => {
+        log("Connect Wallet button clicked");
+        connectWallet();
+      });
+
+      // Handle network and account changes
+      window.ethereum.on('chainChanged', (chainId) => {
+        const networkConfig = networks[selectedNetwork];
+        if (chainId !== networkConfig.chainId) {
+          isConnected = false;
+          walletStatus.innerText = `Please switch to ${networkConfig.chainName}.`;
+          connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+          connectBtn.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8e53)';
+          document.getElementById("sendHelloBtn").disabled = true;
+          document.getElementById("inboxBtn").disabled = true;
+          document.getElementById("interactionsBtn").disabled = true;
+          stopInboxPolling();
+          log(`Network changed. Please switch to ${networkConfig.chainName}.`);
+        }
+      });
+
+      window.ethereum.on('accountsChanged', async (accounts) => {
+        if (accounts.length === 0) {
+          isConnected = false;
+          walletStatus.innerText = "Not connected";
+          connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+          connectBtn.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8e53)';
+          document.getElementById("sendHelloBtn").disabled = true;
+          document.getElementById("inboxBtn").disabled = true;
+          document.getElementById("interactionsBtn").disabled = true;
+          stopInboxPolling();
+          log("Wallet disconnected.");
+        } else {
+          connectWallet();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
